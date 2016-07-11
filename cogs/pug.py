@@ -93,7 +93,8 @@ class Mod:
         return self.teams[team] and self.teams[team][0] == captain
 
     def pick_player(self, captain, index):
-        if not (self.isteamgame and self.isfull): return False
+        if not (self.isteamgame and self.isfull and self.hascaptains):
+            return False
         team = self.current_team
         if self.ispicking(captain, team):
             if index < 0 or index >= len(self) or self.players[index] is None:
