@@ -132,6 +132,8 @@ class PUG:
         self.bot = bot
         with shelve.open('data/pug') as db:
             self.channels = db.get('channels', dict())
+            for channel in self.channels:
+                self.channels[channel].full_reset()
 
     @commands.command(pass_context=True, no_pm=True)
     @commands.has_permissions(manage_channels=True)
