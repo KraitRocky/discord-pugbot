@@ -193,6 +193,7 @@ class PUG:
         wasfull = mod.isfull
         if mod.del_player(player):
             if wasfull:
+                mod.reset()
                 await self.bot.say('{} has been reset'.format(mod.name))
 
     @commands.command(pass_context=True, no_pm=True)
