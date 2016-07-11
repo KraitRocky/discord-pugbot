@@ -5,6 +5,7 @@ PUG Bot for https://discordapp.com
 # Requirements
 
 * Python 3.5
+* git
 
 # Installing
 
