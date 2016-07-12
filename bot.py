@@ -21,7 +21,7 @@ help_attrs = dict(hiddent=True)
 bot = commands.Bot(
         command_prefix=['.', '!'],
         description=description,
-        pm_help=None,
+        pm_help=True,
         help_attrs=help_attrs)
 
 
