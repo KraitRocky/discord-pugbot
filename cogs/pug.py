@@ -1,8 +1,9 @@
-import aysncio
+import asyncio
+import arrow
 from discord.ext import commands
 import discord
+import random
 import shelve
-import arrow
 import os
 
 PICKMODES = [
@@ -119,6 +120,7 @@ class Mod:
         if self.isteamgame:
             self.players = self.red_team + self.blue_team + self.players
             self.players = [p for p in self.players if p is not None]
+            self.teams = [ [], [] ]
 
     def full_reset(self):
         self.players = []
@@ -184,7 +186,10 @@ class PUG:
             s = ' '.join([p.mention for p in mod.players])
             s += '\n{} has been filled'.format(mod.name)
             await self.bot.say(s)
-            if not mod.isteamgame:
+            if mod.isteamgame:
+                await asyncio.sleep(10)
+                await self.rand_captains(channel)
+            else:
                 self.save_dm_stats(channel, mod)
                 mod.full_reset()
 
@@ -250,10 +255,13 @@ class PUG:
     @commands.command(pass_context=True, no_pm=True)
     @commands.has_permissions(manage_channels=True)
     async def reset(self, context):
-        mod = self.channels.get(context.message.channel)
+        channel = context.message.channel
+        mod = self.channels.get(channel)
         if mod is not None and mod.isfull and mod.isteamgame:
             await self.bot.say('{} has been reset'.format(mod.name))
             mod.reset()
+            await asyncio.sleep(10)
+            await self.rand_captains(channel)
 
     @commands.command(pass_context=True, no_pm=True)
     @commands.has_permissions(manage_channels=True)
@@ -261,6 +269,21 @@ class PUG:
         mod = self.channels.get(context.message.channel)
         if mod is not None:
             mod.full_reset()
+
+    async def rand_captains(self, channel):
+        mod = self.channels.get(channel)
+        if mod is None: return
+        if mod.isfull and mod.isteamgame and not mod.hascaptains:
+            candidates = [i for i, x in enumerate(mod.players) if x is not None]
+            random.shuffle(candidates)
+            msg = ''
+            if len(candidates) == len(mod.players):
+                mod.set_captain(mod.players[candidates[0]])
+                msg += mod.red_team[0].name + ' is captain for Red Team\n'
+            mod.set_captain(mod.players[candidates[1]])
+            msg += mod.blue_team[0].name + ' is captain for Blue Team\n'
+            msg += '{} to pick'.format(mod.current_captain.mention)
+            await self.bot.say(msg)
 
     async def set_captain(self, channel, player):
         mod = self.channels.get(channel)
