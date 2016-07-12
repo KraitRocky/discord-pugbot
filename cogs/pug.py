@@ -1,3 +1,4 @@
+import aysncio
 from discord.ext import commands
 import discord
 import shelve
@@ -151,6 +152,21 @@ class PUG:
             stats[channel] = dict()
             db['stats'] = stats
 
+    @commands.command(pass_context=True, no_pm=True)
+    @commands.has_permissions(manage_channels=True)
+    async def delmod(self, context):
+        """Deletes the mod for the channel"""
+        channel = context.message.channel
+        if channel not in self.channels:
+            return
+        del self.channels[channel]
+        with shelve.open('data/pug') as db:
+            db['channels'] = self.channels
+            stats = db.get('stats', dict())
+            if channel in stats:
+                del stats[channel]
+            db['stats'] = stats
+
     @commands.command(pass_context=True, no_pm=True, aliases=['ls'])
     async def list(self, context):
         """Display players in the PUG"""
@@ -163,7 +179,7 @@ class PUG:
         mod = self.channels.get(channel)
         if mod is None or not mod.add_player(player):
             return
-        #await self.bot.send_message(player, 'You have joined ' + mod.name)
+        await self.bot.send_message(player, 'You have joined ' + mod.name)
         if mod.isfull:
             s = ' '.join([p.mention for p in mod.players])
             s += '\n{} has been filled'.format(mod.name)
@@ -188,7 +204,7 @@ class PUG:
         mod = self.channels.get(context.message.channel)
         if mod is None: return
         n = mod.max_players - len(mod)
-        await self.bot.say('Only {} more needed for {}'.format(n, mod.name))
+        await self.bot.say('@here Only {} more needed for {}'.format(n, mod.name))
 
     async def del_player(self, channel, player):
         mod = self.channels.get(channel)
